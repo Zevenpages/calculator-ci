@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Calculadora CI/CD</title>
+</head>
+<body style="font-family: sans-serif; max-width: 420px; margin: 3rem auto;">
+  <h1>Calculadora</h1>
+  <form method="post">
+    <input name="a" placeholder="a" required>
+    <select name="operation">
+      <option value="add">+</option>
+      <option value="subtract">-</option>
+      <option value="multiply">*</option>
+      <option value="divide">/</option>
+    </select>
+    <input name="b" placeholder="b" required>
+    <button type="submit">=</button>
+  </form>
+  {% if result is not none %}
+    <p><strong>Resultado:</strong> {{ result }}</p>
+  {% endif %}
+  {% if error %}
+    <p style="color: red;">{{ error }}</p>
+  {% endif %}
+</body>
+</html>
