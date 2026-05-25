@@ -51,3 +51,24 @@ def test_label_for_known_stages(stage, name, color):
 def test_label_for_unknown_stage_raises():
     with pytest.raises(ValueError):
         trello.label_for("nope")
+
+
+def test_labels_to_remove_strips_other_stage_labels():
+    existing = [
+        {"id": "1", "name": "En progreso"},
+        {"id": "2", "name": "Build OK"},
+    ]
+    assert trello.labels_to_remove(existing, keep_name="Build OK") == ["1"]
+
+
+def test_labels_to_remove_keeps_non_stage_labels():
+    existing = [
+        {"id": "1", "name": "En progreso"},
+        {"id": "9", "name": "bug"},
+    ]
+    assert trello.labels_to_remove(existing, keep_name="Failed") == ["1"]
+
+
+def test_labels_to_remove_nothing_when_only_keep_present():
+    existing = [{"id": "2", "name": "Build OK"}]
+    assert trello.labels_to_remove(existing, keep_name="Build OK") == []
