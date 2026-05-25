@@ -42,6 +42,17 @@ def label_for(stage):
         raise ValueError(f"stage desconocido: {stage}")
 
 
+_STAGE_LABEL_NAMES = {name for name, _ in _LABELS.values()}
+
+
+def labels_to_remove(existing, keep_name):
+    return [
+        label["id"]
+        for label in existing
+        if label["name"] in _STAGE_LABEL_NAMES and label["name"] != keep_name
+    ]
+
+
 # --- HTTP glue (no se testea unitariamente; usa las funciones puras) ---
 
 def _auth():
@@ -52,7 +63,7 @@ def _auth():
 
 
 def _request(method, path, params):
-    data = urllib.parse.urlencode(params).encode()
+    data = urllib.parse.urlencode(params).encode() if params else None
     req = urllib.request.Request(f"{API}{path}", data=data, method=method)
     with urllib.request.urlopen(req) as resp:
         body = resp.read().decode()
@@ -65,6 +76,22 @@ def _add_label(card_id, stage):
         "POST",
         f"/cards/{card_id}/labels",
         {**_auth(), "name": name, "color": color},
+    )
+
+
+def _card_labels(card_id):
+    return _request(
+        "GET",
+        f"/cards/{card_id}/labels?{urllib.parse.urlencode(_auth())}",
+        {},
+    )
+
+
+def _remove_label(card_id, label_id):
+    _request(
+        "DELETE",
+        f"/cards/{card_id}/idLabels/{label_id}?{urllib.parse.urlencode(_auth())}",
+        {},
     )
 
 
@@ -94,6 +121,9 @@ def move_card(card_id, list_id, stage):
         print("No CARD_ID; skipping move.")
         return
     _request("PUT", f"/cards/{card_id}", {**_auth(), "idList": list_id})
+    name, _ = label_for(stage)
+    for label_id in labels_to_remove(_card_labels(card_id), name):
+        _remove_label(card_id, label_id)
     _add_label(card_id, stage)
 
 

@@ -67,6 +67,14 @@ Mapea el estado del pipeline a una etiqueta de color de Trello:
 
 - Un `stage` desconocido levanta `ValueError`.
 
+### `labels_to_remove(existing, keep_name) -> list[str]`
+
+Al mover una card de estado, debe quedar **un solo** label de estado (el actual). Esta función decide qué labels sacar:
+
+- `existing` es la lista de labels actuales de la card (dicts con `id` y `name`).
+- Devuelve los `id` de los labels cuyo `name` es uno de los 4 estados conocidos **y** distinto de `keep_name`.
+- Labels que no son de estado (ej. un `bug` que alguien agregó a mano) NO se tocan.
+
 ### Atributos aplicados a la card (parte de red, sobre las funciones puras)
 
 - **Descripción** = `build_description(...)`.
