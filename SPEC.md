@@ -20,3 +20,17 @@ Define el comportamiento esperado de cada operación ANTES de implementarla.
 
 - `app/calculator.py` contiene SOLO lógica pura. Sin imports de Flask.
 - Los tests prueban estas funciones directamente.
+
+## Contrato de la capa web (`web/app.py`)
+
+La capa web es una fachada HTTP fina sobre la lógica pura. Comportamiento esperado:
+
+| Petición                                   | Respuesta esperada                          |
+|--------------------------------------------|---------------------------------------------|
+| `GET /`                                    | HTML con un `<form` para operar             |
+| `POST /` con `a`, `b`, `operation` válidos | el resultado renderizado (ej. `42.0`)       |
+| `POST /` con `operation=divide` y `b=0`    | el mensaje "No se puede dividir por cero"   |
+| `POST /` con `a` o `b` no numérico         | el mensaje "Entrada invalida"               |
+
+- La capa web NO contiene lógica aritmética: mapea nombres de operación a funciones de `calculator` y delega.
+- Estos comportamientos se prueban con el test client de Flask (tests de integración), antes de implementar la capa.
