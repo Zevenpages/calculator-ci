@@ -16,6 +16,17 @@ Define el comportamiento esperado de cada operación ANTES de implementarla.
 - `divide(a, 0)` debe levantar `ValueError` con mensaje "No se puede dividir por cero".
 - La capa web debe rechazar entradas no numéricas con un mensaje legible, sin llegar a la lógica.
 
+## Parseo de números (`app/numbers.py`)
+
+`parse_number(text) -> float` convierte la entrada del usuario a número. Reglas:
+
+- Acepta `.` o `,` como separador decimal: `"1.5"` y `"1,5"` → `1.5`.
+- Como máximo **un** separador en total: ni dos `.`, ni dos `,`, ni uno de cada.
+  - `"1.1.1"`, `"1,1,1"`, `"1.5,5"` → inválido.
+- Entrada vacía o solo espacios → inválido.
+- Cualquier cosa que no sea número tras normalizar → inválido (ej. `"abc"`).
+- En caso inválido levanta `ValueError`. Es función pura; la usa la capa web, no la lógica aritmética.
+
 ## Contrato
 
 - `app/calculator.py` contiene SOLO lógica pura. Sin imports de Flask.
