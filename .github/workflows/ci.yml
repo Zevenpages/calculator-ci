@@ -6,11 +6,15 @@ on:
   pull_request:
     branches: [main]
 
+# Fuerza Node 24 en los JS actions (incl. cache@v4 transitivo del action de Sonar)
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   build-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0  # SonarCloud needs full history
 
