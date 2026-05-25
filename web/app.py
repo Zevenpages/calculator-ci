@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
 
 from app import calculator
+from app.numbers import parse_number
 
 app = Flask(__name__, template_folder="../templates")
 
@@ -19,10 +20,10 @@ def index():
     if request.method == "POST":
         op = request.form.get("operation")
         try:
-            a = float(request.form.get("a", ""))
-            b = float(request.form.get("b", ""))
-        except ValueError:
-            error = "Entrada invalida: ingresa numeros"
+            a = parse_number(request.form.get("a", ""))
+            b = parse_number(request.form.get("b", ""))
+        except ValueError as exc:
+            error = f"Entrada invalida: {exc}"
         else:
             try:
                 result = OPERATIONS[op](a, b)
