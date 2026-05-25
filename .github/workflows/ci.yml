@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # SonarCloud needs full history
+
+      - name: Trello - crear tarjeta "En progreso"
+        id: trello
+        continue-on-error: true
+        run: bash .github/scripts/trello_create.sh
+        env:
+          TRELLO_API_KEY: ${{ secrets.TRELLO_API_KEY }}
+          TRELLO_TOKEN: ${{ secrets.TRELLO_TOKEN }}
+          TRELLO_LIST_ID: ${{ secrets.TRELLO_LIST_INPROGRESS_ID }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+
+      - name: Build Docker image
+        run: docker build -t calculator-ci .
+
+      - name: Lint (flake8 dentro del container)
+        run: docker run --rm calculator-ci flake8 app web tests
+
+      - name: Tests + coverage (pytest dentro del container)
+        run: |
+          mkdir -p reports
+          docker run --rm -v "${{ github.workspace }}/reports:/app/reports" calculator-ci \
+            pytest --cov=app --cov-report=xml:reports/coverage.xml -v
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Trello - mover a "Build OK"
+        if: success()
+        continue-on-error: true
+        run: bash .github/scripts/trello_move.sh
+        env:
+          CARD_ID: ${{ steps.trello.outputs.card_id }}
+          TRELLO_API_KEY: ${{ secrets.TRELLO_API_KEY }}
+          TRELLO_TOKEN: ${{ secrets.TRELLO_TOKEN }}
+          TRELLO_LIST_ID: ${{ secrets.TRELLO_LIST_BUILDOK_ID }}
+
+      - name: Trello - mover a "Failed"
+        if: failure()
+        continue-on-error: true
+        run: bash .github/scripts/trello_move.sh
+        env:
+          CARD_ID: ${{ steps.trello.outputs.card_id }}
+          TRELLO_API_KEY: ${{ secrets.TRELLO_API_KEY }}
+          TRELLO_TOKEN: ${{ secrets.TRELLO_TOKEN }}
+          TRELLO_LIST_ID: ${{ secrets.TRELLO_LIST_FAILED_ID }}
