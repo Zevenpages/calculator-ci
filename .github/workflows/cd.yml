@@ -10,6 +10,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Gate: no se deploya si el build o los tests fallan (verde antes de prod)
+      - name: Build Docker image
+        run: docker build -t calculator-ci .
+
+      - name: Lint (flake8 dentro del container)
+        run: docker run --rm calculator-ci flake8 app web tests ci
+
+      - name: Tests (pytest dentro del container)
+        run: docker run --rm calculator-ci pytest -q
+
       - name: Trigger Render deploy
         run: curl -fsSL -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
 
