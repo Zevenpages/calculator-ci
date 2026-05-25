@@ -15,8 +15,9 @@ jobs:
 
       - name: Trello - tarjeta "En produccion"
         continue-on-error: true
-        run: bash .github/scripts/trello_create.sh
+        run: python3 -m ci.trello create
         env:
+          STAGE: en_produccion
           TRELLO_API_KEY: ${{ secrets.TRELLO_API_KEY }}
           TRELLO_TOKEN: ${{ secrets.TRELLO_TOKEN }}
           TRELLO_LIST_ID: ${{ secrets.TRELLO_LIST_PROD_ID }}

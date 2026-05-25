@@ -17,8 +17,9 @@ jobs:
       - name: Trello - crear tarjeta "En progreso"
         id: trello
         continue-on-error: true
-        run: bash .github/scripts/trello_create.sh
+        run: python3 -m ci.trello create
         env:
+          STAGE: en_progreso
           TRELLO_API_KEY: ${{ secrets.TRELLO_API_KEY }}
           TRELLO_TOKEN: ${{ secrets.TRELLO_TOKEN }}
           TRELLO_LIST_ID: ${{ secrets.TRELLO_LIST_INPROGRESS_ID }}
@@ -28,7 +29,7 @@ jobs:
         run: docker build -t calculator-ci .
 
       - name: Lint (flake8 dentro del container)
-        run: docker run --rm calculator-ci flake8 app web tests
+        run: docker run --rm calculator-ci flake8 app web tests ci
 
       - name: Tests + coverage (pytest dentro del container)
         run: |
@@ -45,8 +46,9 @@ jobs:
       - name: Trello - mover a "Build OK"
         if: success()
         continue-on-error: true
-        run: bash .github/scripts/trello_move.sh
+        run: python3 -m ci.trello move
         env:
+          STAGE: build_ok
           CARD_ID: ${{ steps.trello.outputs.card_id }}
           TRELLO_API_KEY: ${{ secrets.TRELLO_API_KEY }}
           TRELLO_TOKEN: ${{ secrets.TRELLO_TOKEN }}
@@ -55,8 +57,9 @@ jobs:
       - name: Trello - mover a "Failed"
         if: failure()
         continue-on-error: true
-        run: bash .github/scripts/trello_move.sh
+        run: python3 -m ci.trello move
         env:
+          STAGE: failed
           CARD_ID: ${{ steps.trello.outputs.card_id }}
           TRELLO_API_KEY: ${{ secrets.TRELLO_API_KEY }}
           TRELLO_TOKEN: ${{ secrets.TRELLO_TOKEN }}
