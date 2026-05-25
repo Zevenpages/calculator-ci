@@ -34,3 +34,41 @@ La capa web es una fachada HTTP fina sobre la lógica pura. Comportamiento esper
 
 - La capa web NO contiene lógica aritmética: mapea nombres de operación a funciones de `calculator` y delega.
 - Estos comportamientos se prueban con el test client de Flask (tests de integración), antes de implementar la capa.
+
+## Contrato de atributos de las cards de Trello (`ci/trello.py`)
+
+El mecanismo de feedback enriquece cada card. La lógica pura (que arma textos y elige etiquetas) vive en `ci/trello.py` y se prueba directamente; la parte de red (HTTP a la API de Trello) es glue fina sobre esas funciones.
+
+### `build_description(author, branch, sha, run_url, when) -> str`
+
+Devuelve la descripción de la card en Markdown, con una línea por atributo y en este orden exacto:
+
+```
+**Autor:** <author>
+**Rama:** <branch>
+**Commit:** <sha[:7]>
+**Fecha:** <when>
+**Run:** <run_url>
+```
+
+- El commit se muestra **acortado a 7 caracteres**.
+- Si un valor falta (string vacío o `None`), se reemplaza por `?` y la línea igual aparece.
+
+### `label_for(stage) -> (name, color)`
+
+Mapea el estado del pipeline a una etiqueta de color de Trello:
+
+| stage           | name            | color    |
+|-----------------|-----------------|----------|
+| `en_progreso`   | `En progreso`   | `blue`   |
+| `build_ok`      | `Build OK`      | `green`  |
+| `failed`        | `Failed`        | `red`    |
+| `en_produccion` | `En produccion` | `purple` |
+
+- Un `stage` desconocido levanta `ValueError`.
+
+### Atributos aplicados a la card (parte de red, sobre las funciones puras)
+
+- **Descripción** = `build_description(...)`.
+- **Label de color** = `label_for(stage)` (etiqueta gratis de Trello, no Custom Field).
+- **Attachment** = el `run_url` adjuntado como link clickable (nombre "GitHub Actions run").
