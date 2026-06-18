@@ -1,5 +1,6 @@
 """Pure arithmetic logic. No framework imports."""
 
+password=12345678
 
 def add(a, b):
     return a + b
